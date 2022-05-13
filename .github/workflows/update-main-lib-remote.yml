@@ -1,0 +1,28 @@
+name: Create PR in a remote ArthurBandaryk/PR-bot repo
+on:
+  workflow_call:
+    secrets:
+      pr_bot_secret:
+        required: true
+
+jobs:
+  createPR:
+    runs-on: ubuntu-latest
+    steps:      
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.pr_bot_secret }}
+          #repository: ArthurBandaryk/PR-bot
+      - name: Update file.txt
+        run: |
+          echo -e "Some text updates #1\n" >> file.txt
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Update file.txt
+          title: Update file.txt
+          body: Just simple updates
+          branch: update-readme
+          base: test-branch-for-auto-pr
+          add-paths: file.txt
+          token: ${{ secrets.pr_bot_secret }}
