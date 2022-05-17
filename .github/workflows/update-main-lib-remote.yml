@@ -6,73 +6,6 @@ on:
       - "main"
   workflow_dispatch:
 
-# jobs:
-#   Update-Eventuals:
-    # uses: ArthurBandaryk/PR-bot/.github/workflows/pr.yml@main
-    # with:
-    #   script_directory: dev-tools
-    #   current_commit: $(git log -n 1 --pretty=format:"%H")
-    #   current_shallow_since: $(git log -n 1 --date=raw --pretty=format:"%cd")
-    # secrets:
-    #   main_lib_pr_bot_secret: ${{ secrets.main_lib_pr_bot_secret }}
-
-
-# on:
-#   workflow_call:
-#     inputs:
-#       script_directory:
-#         required: true
-#         type: string
-#     secrets:
-#       pr_bot_secret:
-#         required: true
-
-
-# jobs:
-#   createPR:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Install buildifier for .bzl files
-#         run: brew install buildifier
-#         shell: bash
-#       # Checkout the repository under $GITHUB_WORKSPACE.
-#       - uses: actions/checkout@v2
-#         with:
-#           submodules: "recursive"
-
-#       - name: Grab current commit and shallow_since
-#         id: current_info
-#         run: |
-#           echo ::set-output name=current_commit::$(git log -n 1 --pretty=format:"%H")
-#           echo ::set-output name=current_shallow_since::$(git log -n 1 --date=raw --pretty=format:"%cd")
-#           echo "current_commit = ${{ steps.current_info.outputs.current_commit }}"
-#           echo "current_shallow_since = ${{ steps.current_info.outputs.current_shallow_since }}"
-
-#       - uses: actions/checkout@v3
-#         with:
-#           submodules: recursive
-#           token: ${{ secrets.pr_bot_secret }}
-
-#       - name: Update file.txt
-#         run: |
-#           script_path=.github/workflows/scripts/update-eventuals-git-repository.sh
-#           chmod +x ${{inputs.script_directory}}/${script_path}
-#           ${{ inputs.script_directory }}/${script_path} \
-#           WORKSPACE.bazel ${{ steps.current_info.outputs.current_commit }} \
-#           ${{ steps.current_info.outputs.current_shallow_since }}
-#         shell: bash  
-
-#       - name: Create Pull Request
-#         uses: peter-evans/create-pull-request@v4
-#         with:
-#           commit-message: Update eventuals in git_repository bazel rule
-#           title: Update WORKSPACE.bazel
-#           body: Update eventuals commit and shallow_since in 'git_repository' bazel rule
-#           branch: update-eventuals
-#           base: test-branch-for-auto-pr
-#           add-paths: WORKSPACE.bazel
-#           token: ${{ secrets.pr_bot_secret }}
-
 jobs:
   Try-Update-Eventuals:
     runs-on: ubuntu-latest
@@ -89,9 +22,7 @@ jobs:
         id: current_info
         run: |
           echo ::set-output name=current_commit::$(git log -n 1 --pretty=format:"%H")
-          echo ::set-output name=current_shallow_since::$(git log -n 1 --date=raw --pretty=format:"%cd")
-          echo "current_commit = ${{ steps.current_info.outputs.current_commit }}"
-          echo "current_shallow_since = ${{ steps.current_info.outputs.current_shallow_since }}"    
+          echo ::set-output name=current_shallow_since::$(git log -n 1 --date=raw --pretty=format:"%cd")   
 
       - uses: actions/checkout@v3
         with:
@@ -101,24 +32,17 @@ jobs:
 
       - name: Update WORKSPACE.bazel
         run: |
-          # script_path=.github/workflows/scripts/update-eventuals-git-repository.sh
-          # chmod +x ${{inputs.script_directory}}/${script_path}
-          # ${{ inputs.script_directory }}/${script_path} \
-          # WORKSPACE.bazel ${{ inputs.current_commit }} \
-          # ${{ inputs.current_shallow_since }}
           current_commit="${{ steps.current_info.outputs.current_commit }}"
           current_shallow_since="${{ steps.current_info.outputs.current_shallow_since }}"
-          echo "commit = $current_commit"
-          echo "current_shallow_since = $current_shallow_since"
           chmod +x dev-tools/.github/workflows/scripts/update-eventuals-git-repository.sh
-          ./dev-tools/.github/workflows/scripts/update-eventuals-git-repository.sh WORKSPACE.bazel $current_commit $current_shallow_since
+          ./dev-tools/.github/workflows/scripts/update-eventuals-git-repository.sh WORKSPACE.bazel $current_commit "$current_shallow_since"
         shell: bash  
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Update eventuals in git_repository bazel rule
-          title: Update WORKSPACE.bazel
+          title: Update eventuals
           body: Update eventuals commit and shallow_since in 'git_repository' bazel rule
           branch: update-eventuals
           base: main
