@@ -45,7 +45,7 @@ jobs:
       # submodule.
       - name: Check if PR and issue already exist
         env:
-          REPO: ${{ github.repository }}
+          REPO: ArthurBandaryk/PR-bot
           GITHUB_TOKEN: ${{ secrets.main_lib_pr_bot_secret }}
         run: ./check-if-issue-and-pr-exist.sh Update+eventuals Updating+eventuals+failed
         working-directory: ${{ env.SCRIPTS_DIRECTORY }}
@@ -76,14 +76,15 @@ jobs:
           add-paths: WORKSPACE.bazel
           token: ${{ secrets.main_lib_pr_bot_secret }}
 
-      - name: Auto-approve PR
+      #- name: Auto-approve PR
         # We only need to do this when the PR is first created, not on subsequent
         # updates.
-        if: steps.pr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v1
-        with:
-          github-token: ${{ secrets.main_lib_pr_bot_secret }}
-          number: ${{ steps.pr.outputs.pull-request-number }}    
+        # if: steps.pr.outputs.pull-request-operation == 'created'
+        # uses: juliangruber/approve-pull-request-action@v1.1.1
+        # with:
+        #   github-token: ${{ secrets.main_lib_pr_bot_secret }}
+        #   number: ${{ steps.pr.outputs.pull-request-number }}
+        #   repo: ArthurBandaryk/PR-bot
 
       # Here we are waiting for the PR check status in order to use it in next steps.
       # See docs: https://github.com/marketplace/actions/wait-for-check
@@ -106,7 +107,7 @@ jobs:
         if: steps.wait-for-build.outputs.conclusion == 'failure'
         uses: actions-ecosystem/action-create-issue@v1
         with:
-          github_token: ${{ secrets.private_repo_access_as_rebot_token }}
+          github_token: ${{ secrets.main_lib_pr_bot_secret }}
           title: Updating eventuals failed
           body: |
             ## Please check the PR for submodule "${{ matrix.path }}"
@@ -120,19 +121,23 @@ jobs:
       # The following action removes the "mergequeue-failed" label if it exist.
       # If it doesn't exist the action returns error but doesn't fail the whole job (by default).
       # See docs: https://github.com/actions-ecosystem/action-remove-labels
-      # - name: Remove label "mergequeue-failed"
-      #   if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
-      #   uses: actions-ecosystem/action-remove-labels@v1
-      #   with:
-      #     number: ${{ steps.pr.outputs.pull-request-number }}
-      #     labels: mergequeue-failed
+      - name: Remove label "mergequeue-failed"
+        if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          number: ${{ steps.pr.outputs.pull-request-number }}
+          labels: mergequeue-failed
+          repo: ArthurBandaryk/PR-bot
+          github_token: ${{ secrets.main_lib_pr_bot_secret }}
 
       # We add "mergequeue-ready" label to the pull request created or updated in the step
       # "Create Pull Request or update existing" in order to merge the changes in automatic mode.
       # See docs of the action: https://github.com/actions-ecosystem/action-add-labels
-      # - name: Add label "mergequeue-ready"
-      #   if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
-      #   uses: actions-ecosystem/action-add-labels@v1
-      #   with:
-      #     number: ${{ steps.pr.outputs.pull-request-number }}
-      #     labels: mergequeue-ready  
+      - name: Add label "mergequeue-ready"
+        if: steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          number: ${{ steps.pr.outputs.pull-request-number }}
+          labels: mergequeue-ready
+          repo: ArthurBandaryk/PR-bot
+          github_token: ${{ secrets.main_lib_pr_bot_secret }}
